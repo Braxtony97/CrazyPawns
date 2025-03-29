@@ -11,7 +11,7 @@ namespace DI
         private readonly Dictionary<(string, Type), DIRegistration> _registrations = new();
         private readonly HashSet<(string, Type)> _resolutions = new();
 
-        public DIContainer(DIContainer parentContainer)
+        public DIContainer(DIContainer parentContainer = null)
         {
             _parentContainer = parentContainer;
         }
@@ -71,12 +71,13 @@ namespace DI
 
             _registrations[key] = new DIRegistration()
             {
-                Factory = c => factory,
+                Factory = c => factory(c),
                 IsSingleton = isSingleton
             };
         }
         #endregion
 
+        #region DI Resolve
         public T Resolve<T>(string tag = null)
         {
             var key = (tag, typeof(T));
@@ -117,5 +118,6 @@ namespace DI
             
             throw new Exception($"DI: No Resolve for: {typeof(T)}");
         }
+        #endregion
     }
 }
