@@ -2,6 +2,8 @@ using System.Collections;
 using CrazyPawn.Base;
 using CrazyPawn.Game.SceneEntryPoint;
 using CrazyPawn.Utils;
+using CrazyPawns.Scripts.Base;
+using DI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,9 +11,11 @@ namespace CrazyPawns.Scripts.Game.GameRoot
 {
     public class GameBootstrapper
     {
+        private readonly DIContainer _projectContainer = new();
         private readonly Coroutines _coroutines;
-        private static GameBootstrapper _instance;
+        private static GameBootstrapper _gameBootstrapper;
         private UIRootView _uiRootView;
+        private InputManagerProvider _inputManagerProvider;
         
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void OnBeforeSceneLoad()
@@ -19,8 +23,8 @@ namespace CrazyPawns.Scripts.Game.GameRoot
             Application.targetFrameRate = 60;
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
                 
-            _instance = new GameBootstrapper();
-            _instance.StartGame();
+            _gameBootstrapper = new GameBootstrapper();
+            _gameBootstrapper.StartGame();
         }
 
         private GameBootstrapper()
@@ -31,6 +35,15 @@ namespace CrazyPawns.Scripts.Game.GameRoot
             var prefabUIRoot = Resources.Load<UIRootView>("UIRoot");
             _uiRootView = Object.Instantiate(prefabUIRoot);
             Object.DontDestroyOnLoad(_uiRootView.gameObject);
+            _projectContainer.RegisterInstance(_uiRootView);
+            
+            var inputManager = Resources.Load<InputManagerProvider>("BaseInputManager");
+            _inputManagerProvider = Object.Instantiate(inputManager);
+            Object.DontDestroyOnLoad(_inputManagerProvider.gameObject);
+            _projectContainer.RegisterInstance(_inputManagerProvider);
+            _inputManagerProvider.Initialize(_projectContainer);
+            
+            _projectContainer.RegisterSingleton<EventAggregator>(eventAggregator => new EventAggregator());
         }
 
         private void StartGame()
@@ -61,10 +74,11 @@ namespace CrazyPawns.Scripts.Game.GameRoot
             yield return LoadScene(Constants.GAMEBOOTSTRAP);
             yield return LoadScene(Constants.PAWNFIELD);
 
-            yield return new WaitForSeconds(2f);
+            yield return new WaitForSeconds(0.5f);
 
             var sceneEntryPoint = Object.FindObjectOfType<GameplayEntryPoint>();
-            sceneEntryPoint.Run();
+            var gameplaySceneContainer = new DIContainer(_projectContainer);
+            sceneEntryPoint.Initialize(gameplaySceneContainer);
             
             _uiRootView.Hide();
         }
