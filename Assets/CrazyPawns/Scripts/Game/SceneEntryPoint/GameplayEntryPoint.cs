@@ -12,6 +12,7 @@ namespace CrazyPawn.Game.SceneEntryPoint
         [SerializeField] private DragDrop _dragDrop;
         [SerializeField] private PawnSpawner _pawnSpawner;
         [SerializeField] private SphereManager _sphereManager; 
+        [SerializeField] private BoardCreator _boardCreator; 
 
         public void Initialize(DIContainer gameplaySceneContainer)
         {
@@ -23,6 +24,7 @@ namespace CrazyPawn.Game.SceneEntryPoint
             _dragDrop.Initialize(gameplaySceneContainer);
             _sphereManager.Initialize(gameplaySceneContainer);
             _pawnSpawner.Spawn(gameplaySceneContainer);
+            _boardCreator.CreateBoard();
         }
     }
 }

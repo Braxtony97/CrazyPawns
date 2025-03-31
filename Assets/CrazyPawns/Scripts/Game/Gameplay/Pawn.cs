@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace CrazyPawn.Game.Gameplay
 {
-    
     public class Pawn : MonoBehaviour, IClickable, IMoveable
     {
         [SerializeField] private SpherePawn[] _spheres;
